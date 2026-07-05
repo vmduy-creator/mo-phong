@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bernoulli – Nhieu Doan Ong / Multi-Segment Pipe</title>
+  <meta name="description" content="Mo phong Bernoulli nhieu doan ong co tiet dien thay doi, duong nang va duong do ap." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep:        #080c18;
+      --bg-card:        #0f1623;
+      --bg-surface:     #171f30;
+      --bg-surface2:    #1e2840;
+      --border:         #263147;
+      --border-bright:  #334466;
+      --accent-teal:    #00d4b4;
+      --accent-blue:    #3b82f6;
+      --accent-violet:  #8b5cf6;
+      --accent-green:   #22c55e;
+      --tel-color:      #f59e0b;
+      --hgl-color:      #22d3ee;
+      --vel-color:      #f97316;
+      --pipe-color:     #4a90d9;
+      --loss-color:     #ef4444;
+      --text-primary:   #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Header ── */
+    .app-header {
+      background: linear-gradient(135deg, #080d1e 0%, #111a30 60%, #080d1e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 22px;
+      display: flex; align-items: center; gap: 13px;
+      position: sticky; top: 0; z-index: 60;
+      backdrop-filter: blur(10px);
+    }
+    .logo-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .app-header h1 { font-size: 1rem; font-weight: 700; }
+    .app-header p  { font-size: 0.67rem; color: var(--text-secondary); margin-top: 1px; }
+    .hdr-badges { margin-left: auto; display: flex; gap: 7px; align-items: center; }
+    .badge {
+      padding: 3px 9px; border-radius: 20px; font-size: 0.6rem;
+      font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+    }
+    .badge-rf { background: rgba(239,68,68,.14); color:#f87171; border:1px solid rgba(239,68,68,.28); }
+    .badge-seg { background: rgba(59,130,246,.14); color:#60a5fa; border:1px solid rgba(59,130,246,.28); }
+
+    /* ── Layout ── */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      height: calc(100vh - 63px);
+    }
+    @media(max-width:960px) { .main-layout { grid-template-columns: 1fr; height: auto; } }
+
+    /* ── Control Panel ── */
+    .control-panel {
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 14px 13px 20px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    /* Segment cards */
+    .seg-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .seg-header {
+      padding: 8px 12px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .seg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .seg-body { padding: 10px 12px; background: var(--bg-surface); }
+
+    .pipe-card {
+      border: 1px dashed var(--border-bright);
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: var(--bg-surface2);
+      position: relative;
+    }
+    .pipe-label {
+      font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--text-muted); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .pipe-label::before, .pipe-label::after {
+      content:''; flex:1; height:1px; background: var(--border);
+    }
+
+    /* Sliders */
+    .sg { margin-bottom: 10px; }
+    .sg:last-child { margin-bottom: 0; }
+    .sl-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 4px;
+    }
+    .sl-name { font-size: 0.73rem; color: var(--text-secondary); font-weight: 500; }
+    .sl-val {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600;
+      padding: 1px 6px; border-radius: 4px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%; height: 3px;
+      border-radius: 2px; background: var(--border); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+      border: 2px solid var(--bg-deep); cursor: pointer; transition: transform .15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.4); }
+    input[type="range"]::-moz-range-thumb {
+      width: 13px; height: 13px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+      border: 2px solid var(--bg-deep); cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn {
+      padding: 7px 10px; border-radius: 8px; border: 1px solid;
+      font-size: 0.72rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: all .18s;
+    }
+    .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-add  { background: rgba(34,197,94,.1); color:#4ade80; border-color:rgba(34,197,94,.3); }
+    .btn-rem  { background: rgba(239,68,68,.1); color:#f87171; border-color:rgba(239,68,68,.3); }
+    .btn-rem:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: none; }
+    .btn-add:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: none; }
+
+    /* Q card */
+    .q-card {
+      background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(0,212,180,.08));
+      border: 1px solid rgba(59,130,246,.25);
+      border-radius: 12px; padding: 11px 13px;
+    }
+    .q-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing:.1em; color: var(--accent-teal); margin-bottom: 8px; }
+
+    /* Legend */
+    .legend-card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px;
+    }
+    .legend-title { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing:.12em; color: var(--text-muted); margin-bottom: 8px; }
+    .leg-row { display: flex; align-items: center; gap: 7px; font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 5px; }
+    .leg-row:last-child { margin-bottom: 0; }
+
+    /* Equation box */
+    .eqn-box {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 9px; padding: 10px 13px;
+      text-align: center; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; color: var(--text-secondary);
+    }
+    .eqn-main { font-size: 0.8rem; color: var(--text-primary); font-weight: 600; margin-bottom: 3px; }
+
+    /* ── Main View ── */
+    .main-view {
+      display: flex; flex-direction: column; overflow-y: auto; padding: 14px; gap: 12px;
+    }
+    .canvas-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px; flex-shrink: 0;
+    }
+    .canvas-card h2 {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--text-secondary); margin-bottom: 10px;
+    }
+    canvas { display: block; width: 100%; border-radius: 7px; }
+
+    /* Results */
+    .results-scroll { overflow-x: auto; }
+    .results-table {
+      border-collapse: collapse; width: 100%; min-width: 480px;
+      font-size: 0.72rem;
+    }
+    .results-table th {
+      padding: 7px 11px; text-align: center;
+      font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+      background: var(--bg-surface2); border: 1px solid var(--border);
+      color: var(--text-secondary); white-space: nowrap;
+    }
+    .results-table td {
+      padding: 7px 11px; text-align: center;
+      border: 1px solid var(--border); color: var(--text-secondary);
+      background: var(--bg-surface); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      white-space: nowrap;
+    }
+    .results-table td.sec-name { font-weight: 700; text-align: left; background: var(--bg-surface2); }
+    .results-table td.total-h { color: var(--tel-color); font-weight: 700; }
+    .results-table td.p-neg { color: var(--loss-color); }
+    .results-table tr:hover td { background: rgba(59,130,246,.06); }
+
+    /* Pipe seg results */
+    .pipe-results-table {
+      border-collapse: collapse; width: 100%; min-width: 380px; font-size: 0.72rem;
+    }
+    .pipe-results-table th {
+      padding: 6px 10px; text-align: center;
+      font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing:.09em;
+      background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); color: #f87171;
+    }
+    .pipe-results-table td {
+      padding: 6px 10px; text-align: center;
+      border: 1px solid var(--border); color: var(--text-secondary);
+      background: var(--bg-surface); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    }
+
+    /* Banner */
+    .banner {
+      padding: 7px 11px; border-radius: 8px; font-size: 0.69rem;
+      border: 1px solid; display: flex; gap: 7px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .banner.ok   { background: rgba(34,197,94,.06); border-color: rgba(34,197,94,.28); color: #4ade80; }
+    .banner.warn { background: rgba(245,158,11,.07); border-color: rgba(245,158,11,.28); color: #fbbf24; }
+    .banner.err  { background: rgba(239,68,68,.07);  border-color: rgba(239,68,68,.28);  color: #f87171; }
+
+    .tbl-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px;
+    }
+    .tbl-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing:.1em; color: var(--text-secondary); margin-bottom: 9px; }
+  </style>
+</head>
+<body>
+
+<!-- ════ HEADER ════ -->
+<header class="app-header">
+  <div class="logo-icon">&#9650;</div>
+  <div>
+    <h1>Bernoulli – Nhieu Doan Ong / Multi-Segment Pipe Simulator</h1>
+    <p>rho=1000 kg/m3 · g=9.81 m/s2 · Darcy-Weisbach hL · D toi da 5000 mm · Toi da 10 mat cat</p>
+  </div>
+  <div class="hdr-badges">
+    <span class="badge badge-rf">Real Fluid</span>
+    <span class="badge badge-seg" id="seg-count-badge">3 mat cat</span>
+  </div>
+</header>
+
+<!-- ════ MAIN ════ -->
+<div class="main-layout">
+
+  <!-- ═ LEFT ═ -->
+  <aside class="control-panel" id="ctrl-panel">
+
+    <!-- Q slider -->
+    <div class="q-card">
+      <div class="q-title">Luu Luong Dong Chay / Flow Rate</div>
+      <div class="sg">
+        <div class="sl-row">
+          <span class="sl-name">Q – Luu luong (L/s)</span>
+          <span class="sl-val" id="lbl-Q" style="background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)">5.0</span>
+        </div>
+        <input type="range" id="sl-Q" min="0.5" max="50" step="0.1" value="5" />
+      </div>
+    </div>
+
+    <!-- Dynamic section + pipe cards container -->
+    <div id="sections-container"></div>
+
+    <!-- Add / Remove -->
+    <div class="btn-row">
+      <button class="btn btn-add" id="btn-add">&#43; Them Mat Cat</button>
+      <button class="btn btn-rem" id="btn-rem">&#8722; Xoa Mat Cat</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-card">
+      <div class="legend-title">Chu Thich / Legend</div>
+      <div class="leg-row"><div style="width:26px;height:3px;background:#f59e0b;border-radius:2px;flex-shrink:0"></div><b style="color:#f59e0b">TEL</b> – Duong Nang (Col Ap Tong)</div>
+      <div class="leg-row"><div style="width:26px;height:0;border-top:2px dashed #22d3ee;flex-shrink:0"></div><b style="color:#22d3ee">HGL</b> – Duong Do Ap</div>
+      <div class="leg-row"><div style="width:26px;height:11px;background:rgba(249,115,22,.18);border:1px solid #f97316;border-radius:2px;flex-shrink:0"></div><b style="color:#f97316">v2/2g</b> – Col Ap Dong (TEL - HGL)</div>
+      <div class="leg-row"><div style="width:26px;height:11px;background:rgba(239,68,68,.18);border:1px solid #ef4444;border-radius:2px;flex-shrink:0"></div><b style="color:#ef4444">hL</b> – Ton That Col Ap (Darcy-Weisbach)</div>
+    </div>
+
+    <!-- Equation -->
+    <div class="eqn-box">
+      <div class="eqn-main">Pi/rg + zi + vi^2/2g = Pi+1/rg + zi+1 + vi+1^2/2g + hLi</div>
+      <div>hLi = fi*(Li/Di)*(vi_avg^2/2g) &nbsp;|&nbsp; Q = Ai*vi = const</div>
+    </div>
+
+  </aside>
+
+  <!-- ═ RIGHT ═ -->
+  <main class="main-view">
+
+    <!-- Canvas -->
+    <div class="canvas-card">
+      <h2>So Do Ong &amp; Duong Nang Luong / Pipe Profile &amp; Energy Lines</h2>
+      <canvas id="mainCanvas" height="400"></canvas>
+    </div>
+
+    <!-- Banner -->
+    <div id="banner" class="banner ok">
+      <span>&#10003;</span><span id="bannerTxt">He thong on dinh.</span>
+    </div>
+
+    <!-- Section results -->
+    <div class="tbl-card">
+      <div class="tbl-title">Ket Qua Tung Mat Cat / Section Results</div>
+      <div class="results-scroll">
+        <table class="results-table" id="sec-table">
+          <thead>
+            <tr>
+              <th>Mat Cat</th>
+              <th>D (mm)</th>
+              <th>z (m)</th>
+              <th>v (m/s)</th>
+              <th>v²/2g (m)</th>
+              <th>P/ρg (m)</th>
+              <th>P (kPa)</th>
+              <th style="color:var(--tel-color)">H = TEL (m)</th>
+              <th style="color:var(--hgl-color)">HGL (m)</th>
+            </tr>
+          </thead>
+          <tbody id="sec-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pipe segment results -->
+    <div class="tbl-card">
+      <div class="tbl-title">Ton That Tung Doan Ong / Pipe Segment Head Loss</div>
+      <div class="results-scroll">
+        <table class="pipe-results-table" id="pipe-table">
+          <thead>
+            <tr>
+              <th>Doan Ong</th>
+              <th>L (m)</th>
+              <th>D_avg (mm)</th>
+              <th>f</th>
+              <th>v_avg (m/s)</th>
+              <th style="color:#f87171">hL (m)</th>
+              <th>Re</th>
+            </tr>
+          </thead>
+          <tbody id="pipe-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+const RHO = 1000, G = 9.81, NU = 1e-6; // kinematic viscosity water
+
+/* Default segments */
+let sections = [
+  { D: 400, z: 3, P: 200 },   // D in mm, z in m, P in kPa (only first)
+  { D: 200, z: 6 },
+  { D: 300, z: 2 },
+];
+let pipes = [
+  { L: 25, f: 0.020 },
+  { L: 20, f: 0.018 },
+];
+let Q_val = 10; // L/s
+
+/* Colours for sections */
+const SEC_COLORS = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
+const PIPE_COLORS = [
+  'rgba(59,130,246,0.35)','rgba(34,197,94,0.35)','rgba(245,158,11,0.35)',
+  'rgba(239,68,68,0.35)','rgba(139,92,246,0.35)',
+];
+
+/* ════════════════════════════════════════════
+   PHYSICS
+════════════════════════════════════════════ */
+function physics() {
+  const Q = Q_val / 1000; // m³/s
+  const n = sections.length;
+  const A = sections.map(s => Math.PI * (s.D/1000)**2 / 4);
+  const v = A.map(ai => Q / ai);
+  const vel = v.map(vi => vi*vi/(2*G));
+  const ph0 = sections[0].P * 1000 / (RHO * G);
+  const H  = [ph0 + sections[0].z + vel[0]];
+  const ph = [ph0];
+  const hLs = [];
+  const Re_arr = [];
+
+  for (let i = 0; i < pipes.length; i++) {
+    const { L, f } = pipes[i];
+    const D1 = sections[i].D / 1000;
+    const D2 = sections[i+1].D / 1000;
+    const Davg = (D1 + D2) / 2;
+    const Aavg = Math.PI * Davg * Davg / 4;
+    const vavg = Q / Aavg;
+    const hL = f * (L / Davg) * (vavg * vavg / (2 * G));
+    const Re = vavg * Davg / NU;
+    hLs.push(hL);
+    Re_arr.push(Re);
+    H.push(H[i] - hL);
+    ph.push(H[i+1] - sections[i+1].z - vel[i+1]);
+  }
+
+  const result = sections.map((s, i) => ({
+    D: s.D,
+    z: s.z,
+    A: A[i],
+    v: v[i],
+    vel: vel[i],
+    ph: ph[i],
+    P: ph[i] * RHO * G,
+    H: H[i],
+    HGL: ph[i] + s.z,
+    color: SEC_COLORS[i % SEC_COLORS.length],
+  }));
+  const pipeResult = pipes.map((p, i) => {
+    const D1 = sections[i].D/1000, D2 = sections[i+1].D/1000;
+    const Davg = (D1+D2)/2;
+    const Aavg = Math.PI * Davg * Davg / 4;
+    const vavg = Q / Aavg;
+    return { ...p, hL: hLs[i], Davg: Davg*1000, vavg, Re: Re_arr[i] };
+  });
+
+  return { Q, sections: result, pipes: pipeResult };
+}
+
+/* ════════════════════════════════════════════
+   UI BUILDER – dynamic sliders
+════════════════════════════════════════════ */
+function buildSlider(id, min, max, step, value, unit, label, colorHex) {
+  const col = colorHex || '#3b82f6';
+  return `
+    <div class="sg">
+      <div class="sl-row">
+        <span class="sl-name">${label}</span>
+        <span class="sl-val" id="lbl-${id}" style="background:${col}18;color:${col};border:1px solid ${col}44">${(+value).toFixed(step<1?(step.toString().split('.')[1]||'').length:0)}</span>
+      </div>
+      <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${value}" />
+    </div>`;
+}
+
+function buildUI() {
+  const container = document.getElementById('sections-container');
+  container.innerHTML = '';
+
+  for (let i = 0; i < sections.length; i++) {
+    const s = sections[i];
+    const col = SEC_COLORS[i % SEC_COLORS.length];
+
+    /* Section card */
+    const secDiv = document.createElement('div');
+    secDiv.className = 'seg-card';
+    secDiv.style.borderColor = col + '44';
+
+    let pHTML = '';
+    if (i === 0) {
+      pHTML = buildSlider(`sl-P0`, 0, 800, 1, s.P, 'kPa',
+        'P1 – Ap suat vao (kPa)', col);
+    }
+
+    secDiv.innerHTML = `
+      <div class="seg-header" style="background:${col}18;border-bottom:1px solid ${col}30">
+        <div class="seg-dot" style="background:${col}"></div>
+        <span style="color:${col}">Mat Cat ${i+1} / Section ${i+1}</span>
+      </div>
+      <div class="seg-body">
+        ${buildSlider(`sl-D${i}`, 50, 5000, 10, s.D, 'mm', `D${i+1} – Duong kinh (mm)`, col)}
+        ${buildSlider(`sl-z${i}`, 0, 20, 0.1, s.z, 'm', `z${i+1} – Cao do (m)`, col)}
+        ${pHTML}
+      </div>`;
+    container.appendChild(secDiv);
+
+    /* Pipe card (between section i and i+1) */
+    if (i < pipes.length) {
+      const p = pipes[i];
+      const pcol = '#94a3b8';
+      const pipeDiv = document.createElement('div');
+      pipeDiv.className = 'pipe-card';
+      pipeDiv.innerHTML = `
+        <div class="pipe-label">Ong ${i+1}&#8594;${i+2}</div>
+        ${buildSlider(`sl-L${i}`, 1, 200, 0.5, p.L, 'm', `L${i+1}${i+2} – Chieu dai (m)`, pcol)}
+        ${buildSlider(`sl-f${i}`, 0.005, 0.1, 0.001, p.f, '', `f${i+1}${i+2} – He so ma sat Darcy`, pcol)}`;
+      container.appendChild(pipeDiv);
+    }
+  }
+
+  /* Wire all slider events */
+  document.getElementById('sl-Q').addEventListener('input', onAnyInput);
+  for (let i = 0; i < sections.length; i++) {
+    ['D','z'].forEach(k => {
+      const el = document.getElementById(`sl-${k}${i}`);
+      if (el) el.addEventListener('input', onAnyInput);
+    });
+    if (i === 0) {
+      const ep = document.getElementById('sl-P0');
+      if (ep) ep.addEventListener('input', onAnyInput);
+    }
+    if (i < pipes.length) {
+      ['L','f'].forEach(k => {
+        const el = document.getElementById(`sl-${k}${i}`);
+        if (el) el.addEventListener('input', onAnyInput);
+      });
+    }
+  }
+
+  /* Update badge */
+  document.getElementById('seg-count-badge').textContent = sections.length + ' mat cat';
+  document.getElementById('btn-rem').disabled = sections.length <= 2;
+  document.getElementById('btn-add').disabled = sections.length >= 10;
+}
+
+/* ════════════════════════════════════════════
+   READ SLIDER VALUES → STATE
+════════════════════════════════════════════ */
+function readState() {
+  Q_val = +document.getElementById('sl-Q').value;
+  document.getElementById('lbl-Q').textContent = Q_val.toFixed(1);
+
+  for (let i = 0; i < sections.length; i++) {
+    const dEl = document.getElementById(`sl-D${i}`);
+    const zEl = document.getElementById(`sl-z${i}`);
+    if (dEl) {
+      sections[i].D = +dEl.value;
+      document.getElementById(`lbl-D${i}`).textContent = dEl.value;
+    }
+    if (zEl) {
+      sections[i].z = +zEl.value;
+      document.getElementById(`lbl-z${i}`).textContent = (+zEl.value).toFixed(1);
+    }
+    if (i === 0) {
+      const pEl = document.getElementById('sl-P0');
+      if (pEl) {
+        sections[0].P = +pEl.value;
+        document.getElementById('lbl-P0').textContent = pEl.value;
+      }
+    }
+    if (i < pipes.length) {
+      const lEl = document.getElementById(`sl-L${i}`);
+      const fEl = document.getElementById(`sl-f${i}`);
+      if (lEl) {
+        pipes[i].L = +lEl.value;
+        document.getElementById(`lbl-L${i}`).textContent = (+lEl.value).toFixed(1);
+      }
+      if (fEl) {
+        pipes[i].f = +fEl.value;
+        document.getElementById(`lbl-f${i}`).textContent = (+fEl.value).toFixed(3);
+      }
+    }
+  }
+}
+
+/* ════════════════════════════════════════════
+   TABLE UPDATE
+════════════════════════════════════════════ */
+function updateTables(d) {
+  /* Section table */
+  const stb = document.getElementById('sec-tbody');
+  stb.innerHTML = '';
+  d.sections.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    const pneg = s.P < 0;
+    tr.innerHTML = `
+      <td class="sec-name" style="color:${s.color}">Mat cat ${i+1}</td>
+      <td>${s.D}</td>
+      <td>${s.z.toFixed(2)}</td>
+      <td>${s.v.toFixed(3)}</td>
+      <td>${s.vel.toFixed(3)}</td>
+      <td class="${pneg?'p-neg':''}">${s.ph.toFixed(3)}</td>
+      <td class="${pneg?'p-neg':''}">${(s.P/1000).toFixed(2)}</td>
+      <td class="total-h">${s.H.toFixed(3)}</td>
+      <td style="color:#22d3ee">${s.HGL.toFixed(3)}</td>`;
+    stb.appendChild(tr);
+  });
+
+  /* Pipe table */
+  const ptb = document.getElementById('pipe-tbody');
+  ptb.innerHTML = '';
+  d.pipes.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#94a3b8;font-weight:700">Ong ${i+1}&#8594;${i+2}</td>
+      <td>${p.L.toFixed(1)}</td>
+      <td>${p.Davg.toFixed(0)}</td>
+      <td>${p.f.toFixed(3)}</td>
+      <td>${p.vavg.toFixed(3)}</td>
+      <td style="color:#ef4444;font-weight:700">${p.hL.toFixed(4)}</td>
+      <td>${Math.round(p.Re).toLocaleString()}</td>`;
+    ptb.appendChild(tr);
+  });
+
+  /* Banner */
+  const bn = document.getElementById('banner');
+  const bt = document.getElementById('bannerTxt');
+  const negPressures = d.sections.filter(s => s.P < 0);
+  const totalHL = d.pipes.reduce((a,p) => a+p.hL, 0);
+  if (negPressures.length > 0) {
+    bn.className = 'banner err';
+    bt.textContent = 'CANH BAO XAM THUC: Mat cat ' +
+      negPressures.map((_,j) => d.sections.indexOf(negPressures[j])+1).join(', ') +
+      ' co ap suat am! Xem xet tang P1 hoac giam Q. Tong ton that hL = ' + totalHL.toFixed(3) + ' m';
+  } else {
+    bn.className = 'banner ok';
+    bt.textContent = 'He thong on dinh. Tong ton that hL = ' + totalHL.toFixed(3) +
+      ' m | H_vao = ' + d.sections[0].H.toFixed(2) +
+      ' m | H_ra = ' + d.sections[d.sections.length-1].H.toFixed(2) +
+      ' m | Q = ' + (d.Q*1000).toFixed(1) + ' L/s';
+  }
+}
+
+/* ════════════════════════════════════════════
+   CANVAS
+════════════════════════════════════════════ */
+const CV  = document.getElementById('mainCanvas');
+const CTX = CV.getContext('2d');
+
+function draw(d, ts) {
+  const cssW = CV.offsetWidth || 900;
+  const cssH = 400;
+  const dpr  = window.devicePixelRatio || 1;
+  if (CV.width !== cssW*dpr) {
+    CV.width  = cssW * dpr;
+    CV.height = cssH * dpr;
+    CV.style.height = cssH + 'px';
+    CTX.scale(dpr, dpr);
+  }
+  const W = cssW, H = cssH;
+
+  /* Background */
+  CTX.clearRect(0,0,W,H);
+  const bg = CTX.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0c1020'); bg.addColorStop(1,'#080c18');
+  CTX.fillStyle = bg; CTX.fillRect(0,0,W,H);
+
+  /* Grid */
+  CTX.strokeStyle='rgba(38,49,71,0.6)'; CTX.lineWidth=0.5;
+  for(let x=0;x<W;x+=40){CTX.beginPath();CTX.moveTo(x,0);CTX.lineTo(x,H);CTX.stroke();}
+  for(let y=0;y<H;y+=40){CTX.beginPath();CTX.moveTo(0,y);CTX.lineTo(W,y);CTX.stroke();}
+
+  /* Scale */
+  const allH = d.sections.map(s=>s.H).concat(d.sections.map(s=>s.HGL)).concat(d.sections.map(s=>s.z)).concat([0]);
+  const allD = d.sections.map(s=>s.D/1000/2);
+  let hMin = Math.min(...allH, ...d.sections.map(s=>s.z - s.D/1000/2)) - 1.5;
+  let hMax = Math.max(...allH) + 2.8;
+
+  const pL=72, pR=50, pT=28, pB=48;
+  const dW=W-pL-pR, dH=H-pT-pB;
+  const toX = t  => pL + t*dW;
+  const toY = hv => pT + dH*(1-(hv-hMin)/(hMax-hMin));
+  const m2px = dH/(hMax-hMin);
+  const n = d.sections.length;
+
+  /* Section x-positions */
+  const xPos = d.sections.map((_,i) => toX(i/(n-1)*0.88+0.06));
+
+  /* Y axis */
+  for(let i=0;i<=8;i++){
+    const hv=hMin+(hMax-hMin)*i/8, y=toY(hv);
+    CTX.fillStyle='rgba(100,116,139,0.65)';
+    CTX.font='10px "JetBrains Mono",monospace'; CTX.textAlign='right';
+    CTX.fillText(hv.toFixed(1)+' m', pL-5, y+3);
+    CTX.strokeStyle='rgba(38,49,71,0.4)'; CTX.lineWidth=0.5;
+    CTX.beginPath();CTX.moveTo(pL,y);CTX.lineTo(W-pR,y);CTX.stroke();
+  }
+
+  /* Datum */
+  const yD=toY(0);
+  if(yD>pT && yD<H-pB){
+    CTX.setLineDash([5,4]);
+    CTX.strokeStyle='rgba(100,116,139,0.3)'; CTX.lineWidth=1;
+    CTX.beginPath();CTX.moveTo(pL,yD);CTX.lineTo(W-pR,yD);CTX.stroke();
+    CTX.setLineDash([]);
+    CTX.fillStyle='rgba(100,116,139,0.45)'; CTX.font='9px Inter,sans-serif'; CTX.textAlign='left';
+    CTX.fillText('z=0 (Dat chuan)', pL+4, yD-3);
+  }
+
+  /* ── Draw pipe segments ── */
+  for(let i=0;i<n-1;i++){
+    const s1=d.sections[i], s2=d.sections[i+1];
+    const xa=xPos[i], xb=xPos[i+1];
+    const c1Y=toY(s1.z), c2Y=toY(s2.z);
+    const r1=s1.D/1000/2*m2px, r2=s2.D/1000/2*m2px;
+    const xmid=(xa+xb)/2;
+
+    /* Water fill */
+    const wg=CTX.createLinearGradient(xa,0,xb,0);
+    wg.addColorStop(0, SEC_COLORS[i]+'30');
+    wg.addColorStop(1, SEC_COLORS[i+1]+'30');
+    CTX.beginPath();
+    CTX.moveTo(xa, c1Y-r1);
+    CTX.bezierCurveTo(xmid, c1Y-r1, xmid, c2Y-r2, xb, c2Y-r2);
+    CTX.lineTo(xb, c2Y+r2);
+    CTX.bezierCurveTo(xmid, c2Y+r2, xmid, c1Y+r1, xa, c1Y+r1);
+    CTX.closePath();
+    CTX.fillStyle=wg; CTX.fill();
+
+    /* Pipe walls */
+    const wg2=CTX.createLinearGradient(xa,0,xb,0);
+    wg2.addColorStop(0, SEC_COLORS[i]);
+    wg2.addColorStop(1, SEC_COLORS[(i+1)%SEC_COLORS.length]);
+    CTX.save();
+    CTX.shadowColor='rgba(34,211,238,0.25)'; CTX.shadowBlur=5;
+    CTX.strokeStyle=wg2; CTX.lineWidth=2.5; CTX.setLineDash([]);
+    CTX.beginPath();
+    CTX.moveTo(xa,c1Y-r1);
+    CTX.bezierCurveTo(xmid,c1Y-r1,xmid,c2Y-r2,xb,c2Y-r2);
+    CTX.stroke();
+    CTX.beginPath();
+    CTX.moveTo(xa,c1Y+r1);
+    CTX.bezierCurveTo(xmid,c1Y+r1,xmid,c2Y+r2,xb,c2Y+r2);
+    CTX.stroke();
+    CTX.restore();
+
+    /* Flow arrows (animated) */
+    const t0=(ts/1000)%1;
+    for(let k=0;k<4;k++){
+      const t=((k/4)+t0)%1;
+      /* Bezier interp for top wall */
+      const ax = xa+(xb-xa)*t;
+      const ay = c1Y+(c2Y-c1Y)*t;
+      const spd=(s1.v+s2.v)/2;
+      const sz=Math.min(11,3+spd*0.4);
+      const ang=Math.atan2(c2Y-c1Y, xb-xa);
+      CTX.save();
+      CTX.translate(ax,ay); CTX.rotate(ang);
+      CTX.globalAlpha=0.5;
+      CTX.fillStyle='#22d3ee';
+      CTX.beginPath();
+      CTX.moveTo(sz,0); CTX.lineTo(-sz*.55,sz*.45); CTX.lineTo(-sz*.55,-sz*.45);
+      CTX.closePath(); CTX.fill();
+      CTX.restore();
+    }
+
+    /* End caps */
+    CTX.lineWidth=2;
+    CTX.strokeStyle=SEC_COLORS[i];
+    CTX.beginPath();CTX.moveTo(xa,c1Y-r1);CTX.lineTo(xa,c1Y+r1);CTX.stroke();
+  }
+  /* Last end cap */
+  {
+    const sl=d.sections[n-1];
+    const xl=xPos[n-1];
+    const rl=sl.D/1000/2*m2px;
+    CTX.strokeStyle=SEC_COLORS[(n-1)%SEC_COLORS.length];
+    CTX.lineWidth=2;
+    CTX.beginPath();CTX.moveTo(xl,toY(sl.z)-rl);CTX.lineTo(xl,toY(sl.z)+rl);CTX.stroke();
+  }
+
+  /* ── Elevation dashes ── */
+  d.sections.forEach((s,i)=>{
+    const xp=xPos[i], y0=toY(0), yz=toY(s.z);
+    if(Math.abs(y0-yz)<2) return;
+    CTX.strokeStyle=SEC_COLORS[i%SEC_COLORS.length]+'55';
+    CTX.lineWidth=1; CTX.setLineDash([3,3]);
+    CTX.beginPath();CTX.moveTo(xp,Math.min(y0,yz));CTX.lineTo(xp,Math.max(y0,yz));CTX.stroke();
+    CTX.setLineDash([]);
+  });
+
+  /* ── HGL ── */
+  CTX.save();
+  CTX.shadowColor='#22d3ee'; CTX.shadowBlur=8;
+  CTX.strokeStyle='#22d3ee'; CTX.lineWidth=2.5; CTX.setLineDash([9,5]);
+  CTX.beginPath();
+  d.sections.forEach((s,i)=>{ const y=toY(s.HGL); if(i===0)CTX.moveTo(xPos[i],y);else CTX.lineTo(xPos[i],y); });
+  CTX.stroke();
+  CTX.restore(); CTX.setLineDash([]);
+  d.sections.forEach((s,i)=>{
+    CTX.beginPath();CTX.arc(xPos[i],toY(s.HGL),4,0,Math.PI*2);
+    CTX.fillStyle='#22d3ee';CTX.fill();
+    CTX.strokeStyle='#080c18';CTX.lineWidth=1.5;CTX.stroke();
+  });
+  /* HGL label */
+  CTX.fillStyle='#22d3ee'; CTX.font='10px Inter,sans-serif'; CTX.textAlign='left';
+  CTX.fillText('HGL – Duong Do Ap', xPos[0]+6, toY(d.sections[0].HGL)+15);
+
+  /* ── Velocity head boxes (TEL–HGL gap) ── */
+  d.sections.forEach((s,i)=>{
+    const yT=toY(s.H), yG=toY(s.HGL);
+    const yto=Math.min(yT,yG), ybo=Math.max(yT,yG);
+    if(ybo-yto<2) return;
+    const gw=28;
+    CTX.fillStyle='rgba(249,115,22,0.14)';
+    CTX.strokeStyle='rgba(249,115,22,0.4)'; CTX.lineWidth=1; CTX.setLineDash([]);
+    CTX.strokeRect(xPos[i]-gw/2,yto,gw,ybo-yto);
+    CTX.fillRect(xPos[i]-gw/2,yto,gw,ybo-yto);
+    CTX.fillStyle='#f97316'; CTX.font='8px "JetBrains Mono",monospace'; CTX.textAlign='center';
+    CTX.fillText('v2/2g', xPos[i], (yto+ybo)/2+3);
+  });
+
+  /* ── TEL ── */
+  CTX.save();
+  CTX.shadowColor='#f59e0b'; CTX.shadowBlur=14;
+  CTX.strokeStyle='#f59e0b'; CTX.lineWidth=3.5; CTX.setLineDash([]);
+  CTX.beginPath();
+  d.sections.forEach((s,i)=>{ const y=toY(s.H); if(i===0)CTX.moveTo(xPos[i],y);else CTX.lineTo(xPos[i],y); });
+  CTX.stroke();
+  CTX.restore();
+  d.sections.forEach((s,i)=>{
+    CTX.beginPath();CTX.arc(xPos[i],toY(s.H),5,0,Math.PI*2);
+    CTX.fillStyle='#f59e0b';CTX.fill();
+    CTX.strokeStyle='#080c18';CTX.lineWidth=1.5;CTX.stroke();
+    /* H label */
+    CTX.fillStyle='#fbbf24'; CTX.font='9px "JetBrains Mono",monospace'; CTX.textAlign='center';
+    CTX.fillText('H'+(i+1)+'='+s.H.toFixed(2), xPos[i], toY(s.H)-8);
+  });
+  /* TEL label */
+  CTX.fillStyle='#f59e0b'; CTX.font='bold 11px Inter,sans-serif'; CTX.textAlign='left';
+  CTX.fillText('TEL – Duong Nang (Col Ap Tong)', xPos[0]+6, toY(d.sections[0].H)-12);
+
+  /* ── hL arrows between TEL points ── */
+  d.pipes.forEach((p,i)=>{
+    const yT1=toY(d.sections[i].H);
+    const yT2=toY(d.sections[i+1].H);
+    const xmid=(xPos[i]+xPos[i+1])/2;
+    if(Math.abs(yT1-yT2)<3) return;
+    CTX.strokeStyle='rgba(239,68,68,0.7)'; CTX.fillStyle='rgba(239,68,68,0.7)';
+    CTX.lineWidth=1.5; CTX.setLineDash([3,3]);
+    CTX.beginPath();CTX.moveTo(xmid,yT1);CTX.lineTo(xmid,yT2);CTX.stroke();
+    CTX.setLineDash([]);
+    CTX.beginPath();CTX.moveTo(xmid,yT2);CTX.lineTo(xmid-4,yT2-8);CTX.lineTo(xmid+4,yT2-8);CTX.closePath();CTX.fill();
+    CTX.beginPath();CTX.moveTo(xmid-4,yT1);CTX.lineTo(xmid+4,yT1);CTX.stroke();
+    CTX.fillStyle='#ef4444'; CTX.font='bold 9px Inter,sans-serif'; CTX.textAlign='left';
+    CTX.fillText('hL='+p.hL.toFixed(2)+'m', xmid+5, (yT1+yT2)/2+3);
+  });
+
+  /* ── Section labels ── */
+  d.sections.forEach((s,i)=>{
+    const col=SEC_COLORS[i%SEC_COLORS.length];
+    const rPx=s.D/1000/2*m2px;
+    const yl=toY(s.z)+rPx+18;
+    CTX.fillStyle=col; CTX.font='bold 11px Inter,sans-serif'; CTX.textAlign='center';
+    CTX.fillText('MC'+(i+1), xPos[i], yl);
+    CTX.font='9px "JetBrains Mono",monospace'; CTX.fillStyle='rgba(148,163,184,0.75)';
+    CTX.fillText('D='+s.D+'mm', xPos[i], yl+12);
+  });
+
+  /* ── Bottom label ── */
+  CTX.fillStyle='rgba(100,116,139,0.5)'; CTX.font='10px Inter,sans-serif'; CTX.textAlign='center';
+  CTX.fillText('Huong dong chay / Flow Direction -->', W/2, H-12);
+}
+
+/* ════════════════════════════════════════════
+   ADD / REMOVE SECTIONS
+════════════════════════════════════════════ */
+document.getElementById('btn-add').addEventListener('click', () => {
+  if (sections.length >= 10) return;
+  const last = sections[sections.length-1];
+  sections.push({ D: Math.max(50, last.D - 50), z: Math.max(0, last.z - 1) });
+  pipes.push({ L: 20, f: 0.020 });
+  buildUI();
+  update();
+});
+
+document.getElementById('btn-rem').addEventListener('click', () => {
+  if (sections.length <= 2) return;
+  sections.pop();
+  pipes.pop();
+  buildUI();
+  update();
+});
+
+/* ════════════════════════════════════════════
+   MASTER UPDATE
+════════════════════════════════════════════ */
+function onAnyInput() {
+  readState();
+  updateTables(physics());
+}
+
+function update() {
+  updateTables(physics());
+}
+
+let resizeT;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeT);
+  resizeT=setTimeout(()=>{ CV.width=0; update(); }, 80);
+});
+
+/* Animation loop */
+function loop(ts) {
+  requestAnimationFrame(loop);
+  draw(physics(), ts);
+}
+
+/* Init */
+buildUI();
+update();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
