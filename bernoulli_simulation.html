@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mo Phong Phuong Trinh Bernoulli - Chat Long Thuc</title>
+  <meta name="description" content="Mo phong tuong tac phuong trinh Bernoulli cho chat long thuc chay qua ong co tiet dien thay doi, hien thi Duong Nang va Duong Do Ap." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep:       #0a0e1a;
+      --bg-card:       #111827;
+      --bg-surface:    #1c2436;
+      --border:        #2d3a52;
+      --accent-teal:   #00d4b4;
+      --accent-blue:   #3b82f6;
+      --accent-violet: #8b5cf6;
+      --tel-color:     #f59e0b;
+      --hgl-color:     #22d3ee;
+      --vel-color:     #f97316;
+      --pipe-color:    #4a90d9;
+      --loss-color:    #ef4444;
+      --text-primary:  #f1f5f9;
+      --text-secondary:#94a3b8;
+      --text-muted:    #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .app-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .app-header h1 { font-size: 1.05rem; font-weight: 700; }
+    .app-header p  { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+    .badge {
+      margin-left: auto; padding: 4px 10px; border-radius: 20px;
+      font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+      background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3);
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: calc(100vh - 69px);
+    }
+    @media(max-width:900px){ .main-layout { grid-template-columns: 1fr; height: auto; } }
+
+    .control-panel {
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 18px 15px;
+      display: flex; flex-direction: column; gap: 15px;
+    }
+    .sec-title {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: .13em;
+      text-transform: uppercase; color: var(--accent-teal);
+      margin-bottom: 9px; display: flex; align-items: center; gap: 6px;
+    }
+    .sec-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 13px;
+    }
+
+    .sg { margin-bottom: 11px; }
+    .sg:last-child { margin-bottom: 0; }
+    .sl-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 5px;
+    }
+    .sl-row span:first-child { font-size: 0.76rem; color: var(--text-secondary); font-weight: 500; }
+    .vbadge {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; font-weight: 600;
+      background: rgba(59,130,246,.14); color: var(--accent-blue);
+      border: 1px solid rgba(59,130,246,.28); padding: 1px 7px; border-radius: 4px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%; height: 4px;
+      border-radius: 2px; background: var(--border); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+      border: 2px solid var(--bg-deep); cursor: pointer; transition: transform .15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.35); }
+    input[type="range"]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+      border: 2px solid var(--bg-deep); cursor: pointer;
+    }
+
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 0.71rem; color: var(--text-secondary); margin-bottom: 6px; }
+
+    .main-view {
+      display: flex; flex-direction: column; overflow-y: auto; padding: 15px; gap: 13px;
+    }
+    .canvas-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 15px; flex-shrink: 0;
+    }
+    .canvas-card h2 {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--text-secondary); margin-bottom: 11px;
+    }
+    canvas { display: block; width: 100%; border-radius: 7px; }
+
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .rc {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 13px;
+    }
+    .rc-hdr {
+      font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+      margin-bottom: 9px; padding-bottom: 7px; border-bottom: 1px solid var(--border);
+    }
+    .rc-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.74rem; margin-bottom: 5px; }
+    .rc-row .lbl { color: var(--text-secondary); }
+    .rc-row .val { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 600; }
+    .rc-row .val.hi { color: var(--accent-teal); }
+    .rc-row.total { border-top: 1px solid var(--border); padding-top: 5px; margin-top: 3px; }
+
+    .mini-stat {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px; text-align: center;
+    }
+    .mini-stat .ms-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px; }
+    .mini-stat .ms-val { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; }
+
+    .eqn-box {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px;
+      font-size: 0.75rem; color: var(--text-secondary); text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .eqn-box .eq { font-size: 0.84rem; color: var(--text-primary); font-weight: 600; margin-bottom: 3px; }
+
+    .banner {
+      padding: 8px 12px; border-radius: 8px; font-size: 0.71rem;
+      border: 1px solid; display: flex; gap: 8px; align-items: flex-start;
+    }
+    .banner.ok   { background: rgba(34,197,94,.07); border-color: rgba(34,197,94,.3); color: #4ade80; }
+    .banner.warn { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.3); color: #fbbf24; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo-icon">&#9650;</div>
+  <div>
+    <h1>Mo Phong Phuong Trinh Bernoulli / Bernoulli's Equation Simulator</h1>
+    <p>Chat Long Thuc (Real Fluid) | rho=1000 kg/m3 · g=9.81 m/s2 · Darcy-Weisbach Head Loss</p>
+  </div>
+  <span class="badge">Real Fluid</span>
+</header>
+
+<!-- LAYOUT -->
+<div class="main-layout">
+
+  <!-- LEFT PANEL -->
+  <aside class="control-panel">
+
+    <div>
+      <div class="sec-title">Luu Luong / Flow Rate</div>
+      <div class="card">
+        <div class="sg">
+          <div class="sl-row"><span>Q - Luu luong (L/s)</span><span class="vbadge" id="lbl-Q">5.0</span></div>
+          <input type="range" id="sl-Q" min="0.5" max="30" step="0.1" value="5" />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Mat Cat 1 / Section 1</div>
+      <div class="card">
+        <div class="sg">
+          <div class="sl-row"><span>D1 - Duong kinh (mm)</span><span class="vbadge" id="lbl-D1">200</span></div>
+          <input type="range" id="sl-D1" min="50" max="500" step="5" value="200" />
+        </div>
+        <div class="sg">
+          <div class="sl-row"><span>z1 - Cao do (m)</span><span class="vbadge" id="lbl-z1">3.0</span></div>
+          <input type="range" id="sl-z1" min="0" max="15" step="0.1" value="3" />
+        </div>
+        <div class="sg">
+          <div class="sl-row"><span>P1 - Ap suat (kPa)</span><span class="vbadge" id="lbl-P1">150</span></div>
+          <input type="range" id="sl-P1" min="0" max="500" step="1" value="150" />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Mat Cat 2 / Section 2</div>
+      <div class="card">
+        <div class="sg">
+          <div class="sl-row"><span>D2 - Duong kinh (mm)</span><span class="vbadge" id="lbl-D2">100</span></div>
+          <input type="range" id="sl-D2" min="50" max="500" step="5" value="100" />
+        </div>
+        <div class="sg">
+          <div class="sl-row"><span>z2 - Cao do (m)</span><span class="vbadge" id="lbl-z2">5.0</span></div>
+          <input type="range" id="sl-z2" min="0" max="15" step="0.1" value="5" />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Thong So Ong / Pipe Params</div>
+      <div class="card">
+        <div class="sg">
+          <div class="sl-row"><span>f - He so ma sat Darcy</span><span class="vbadge" id="lbl-f">0.020</span></div>
+          <input type="range" id="sl-f" min="0.005" max="0.08" step="0.001" value="0.02" />
+        </div>
+        <div class="sg">
+          <div class="sl-row"><span>L - Chieu dai ong (m)</span><span class="vbadge" id="lbl-L">20</span></div>
+          <input type="range" id="sl-L" min="1" max="100" step="0.5" value="20" />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Chu Thich / Legend</div>
+      <div class="card">
+        <div class="legend-row"><div style="width:28px;height:3px;background:#f59e0b;border-radius:2px;flex-shrink:0"></div><span><b style="color:#f59e0b">TEL</b> - Duong Nang (Col Ap Tong)</span></div>
+        <div class="legend-row"><div style="width:28px;height:0;border-top:2px dashed #22d3ee;flex-shrink:0"></div><span><b style="color:#22d3ee">HGL</b> - Duong Do Ap (Col Ap Tinh+Vi Nang)</span></div>
+        <div class="legend-row"><div style="width:28px;height:12px;background:rgba(249,115,22,.18);border:1px solid #f97316;border-radius:2px;flex-shrink:0"></div><span><b style="color:#f97316">v2/2g</b> - Col Ap Dong (khoang TEL-HGL)</span></div>
+        <div class="legend-row"><div style="width:28px;height:12px;background:rgba(239,68,68,.18);border:1px solid #ef4444;border-radius:2px;flex-shrink:0"></div><span><b style="color:#ef4444">hL</b> - Ton That Col Ap Darcy-Weisbach</span></div>
+        <div class="legend-row"><div style="width:28px;height:12px;background:rgba(74,144,217,.22);border:1px solid #4a90d9;border-radius:2px;flex-shrink:0"></div><span><b style="color:#4a90d9">Ong</b> - Profil ong (Pipe Profile)</span></div>
+      </div>
+    </div>
+
+    <div class="eqn-box">
+      <div class="eq">P1/rg + z1 + v1^2/2g = P2/rg + z2 + v2^2/2g + hL</div>
+      <div>hL = f*(L/D)*(v^2/2g) &nbsp;|&nbsp; Q = A1*v1 = A2*v2</div>
+    </div>
+
+  </aside>
+
+  <!-- RIGHT MAIN -->
+  <main class="main-view">
+
+    <div class="canvas-card">
+      <h2>So Do Ong &amp; Duong Nang Luong / Pipe Profile &amp; Energy Lines</h2>
+      <canvas id="mainCanvas" height="380"></canvas>
+    </div>
+
+    <div id="banner" class="banner ok">
+      <span>&#10003;</span><span id="bannerTxt">He thong on dinh.</span>
+    </div>
+
+    <div class="results-grid">
+      <div class="rc">
+        <div class="rc-hdr" style="color:#3b82f6">Mat Cat 1 / Section 1</div>
+        <div class="rc-row"><span class="lbl">Van toc v1</span>           <span class="val" id="r-v1">-</span></div>
+        <div class="rc-row"><span class="lbl">Col ap dong v1^2/2g</span>  <span class="val" id="r-vel1">-</span></div>
+        <div class="rc-row"><span class="lbl">Col ap ap suat P1/rg</span> <span class="val" id="r-ph1">-</span></div>
+        <div class="rc-row"><span class="lbl">Cao do z1</span>            <span class="val" id="r-z1">-</span></div>
+        <div class="rc-row total"><span class="lbl" style="color:#f59e0b;font-weight:700">Tong col ap H1</span><span class="val hi" id="r-H1">-</span></div>
+      </div>
+      <div class="rc">
+        <div class="rc-hdr" style="color:#8b5cf6">Mat Cat 2 / Section 2</div>
+        <div class="rc-row"><span class="lbl">Van toc v2</span>           <span class="val" id="r-v2">-</span></div>
+        <div class="rc-row"><span class="lbl">Col ap dong v2^2/2g</span>  <span class="val" id="r-vel2">-</span></div>
+        <div class="rc-row"><span class="lbl">Col ap ap suat P2/rg</span> <span class="val" id="r-ph2">-</span></div>
+        <div class="rc-row"><span class="lbl">Cao do z2</span>            <span class="val" id="r-z2">-</span></div>
+        <div class="rc-row total"><span class="lbl" style="color:#f59e0b;font-weight:700">Tong col ap H2</span><span class="val hi" id="r-H2">-</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div class="mini-stat">
+        <div class="ms-label">Ton That hL</div>
+        <div class="ms-val" id="r-hL" style="color:#ef4444">-</div>
+      </div>
+      <div class="mini-stat">
+        <div class="ms-label">Dien Tich A1</div>
+        <div class="ms-val" id="r-A1">-</div>
+      </div>
+      <div class="mini-stat">
+        <div class="ms-label">Dien Tich A2</div>
+        <div class="ms-val" id="r-A2">-</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ===== Constants ===== */
+const RHO = 1000, G = 9.81;
+
+/* ===== DOM ===== */
+const CV  = document.getElementById('mainCanvas');
+const CTX = CV.getContext('2d');
+
+const SL = {
+  Q:  document.getElementById('sl-Q'),
+  D1: document.getElementById('sl-D1'),
+  z1: document.getElementById('sl-z1'),
+  P1: document.getElementById('sl-P1'),
+  D2: document.getElementById('sl-D2'),
+  z2: document.getElementById('sl-z2'),
+  f:  document.getElementById('sl-f'),
+  L:  document.getElementById('sl-L'),
+};
+const LB = {
+  Q:  document.getElementById('lbl-Q'),
+  D1: document.getElementById('lbl-D1'),
+  z1: document.getElementById('lbl-z1'),
+  P1: document.getElementById('lbl-P1'),
+  D2: document.getElementById('lbl-D2'),
+  z2: document.getElementById('lbl-z2'),
+  f:  document.getElementById('lbl-f'),
+  L:  document.getElementById('lbl-L'),
+};
+
+/* ===== Physics ===== */
+function physics() {
+  const Q  = +SL.Q.value  / 1000;
+  const D1 = +SL.D1.value / 1000;
+  const D2 = +SL.D2.value / 1000;
+  const z1 = +SL.z1.value;
+  const z2 = +SL.z2.value;
+  const P1 = +SL.P1.value * 1000;
+  const f  = +SL.f.value;
+  const L  = +SL.L.value;
+
+  const A1 = Math.PI * D1 * D1 / 4;
+  const A2 = Math.PI * D2 * D2 / 4;
+  const v1 = Q / A1;
+  const v2 = Q / A2;
+  const vel1 = v1*v1 / (2*G);
+  const vel2 = v2*v2 / (2*G);
+  const ph1  = P1 / (RHO*G);
+
+  /* Darcy-Weisbach with average D */
+  const Dav  = (D1+D2)/2;
+  const vav  = Q / (Math.PI*Dav*Dav/4);
+  const hL   = f * (L/Dav) * (vav*vav/(2*G));
+
+  const H1  = ph1 + z1 + vel1;
+  const H2  = H1 - hL;
+  const ph2 = H2 - z2 - vel2;
+  const P2  = ph2 * RHO * G;
+
+  return {Q,D1,D2,A1,A2,v1,v2,vel1,vel2,ph1,ph2,P1,P2,z1,z2,H1,H2,hL,f,L};
+}
+
+/* ===== UI Update ===== */
+function uiUpdate(d) {
+  LB.Q.textContent  = (+SL.Q.value).toFixed(1);
+  LB.D1.textContent = SL.D1.value;
+  LB.z1.textContent = (+SL.z1.value).toFixed(1);
+  LB.P1.textContent = SL.P1.value;
+  LB.D2.textContent = SL.D2.value;
+  LB.z2.textContent = (+SL.z2.value).toFixed(1);
+  LB.f.textContent  = (+SL.f.value).toFixed(3);
+  LB.L.textContent  = SL.L.value;
+
+  document.getElementById('r-v1').textContent   = d.v1.toFixed(3)   + ' m/s';
+  document.getElementById('r-vel1').textContent = d.vel1.toFixed(3) + ' m';
+  document.getElementById('r-ph1').textContent  = d.ph1.toFixed(3)  + ' m';
+  document.getElementById('r-z1').textContent   = d.z1.toFixed(2)   + ' m';
+  document.getElementById('r-H1').textContent   = d.H1.toFixed(3)   + ' m';
+  document.getElementById('r-v2').textContent   = d.v2.toFixed(3)   + ' m/s';
+  document.getElementById('r-vel2').textContent = d.vel2.toFixed(3) + ' m';
+  document.getElementById('r-ph2').textContent  = d.ph2.toFixed(3)  + ' m';
+  document.getElementById('r-z2').textContent   = d.z2.toFixed(2)   + ' m';
+  document.getElementById('r-H2').textContent   = d.H2.toFixed(3)   + ' m';
+  document.getElementById('r-hL').textContent   = d.hL.toFixed(3)   + ' m';
+  document.getElementById('r-A1').textContent   = (d.A1*10000).toFixed(2) + ' cm2';
+  document.getElementById('r-A2').textContent   = (d.A2*10000).toFixed(2) + ' cm2';
+
+  const bn = document.getElementById('banner');
+  const bt = document.getElementById('bannerTxt');
+  if (d.P2 < 0) {
+    bn.className = 'banner warn';
+    bt.textContent = 'CANH BAO: Ap suat P2 = ' + (d.P2/1000).toFixed(2) + ' kPa (am). Xam thuc (cavitation) co the xay ra!';
+  } else {
+    bn.className = 'banner ok';
+    bt.textContent = 'He thong on dinh. P2=' + (d.P2/1000).toFixed(2) + ' kPa | hL=' + d.hL.toFixed(3) + ' m | v2/v1=' + (d.v2/d.v1).toFixed(2) + 'x';
+  }
+}
+
+/* ===== Canvas Draw ===== */
+function draw(d, ts) {
+  const cssW = CV.offsetWidth || 800;
+  const cssH = 380;
+  const dpr  = window.devicePixelRatio || 1;
+  if (CV.width !== cssW*dpr || CV.height !== cssH*dpr) {
+    CV.width  = cssW * dpr;
+    CV.height = cssH * dpr;
+    CV.style.height = cssH + 'px';
+    CTX.scale(dpr, dpr);
+  }
+  const W = cssW, H = cssH;
+
+  /* Background */
+  CTX.clearRect(0,0,W,H);
+  const bg = CTX.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1526'); bg.addColorStop(1,'#0a0e1a');
+  CTX.fillStyle = bg; CTX.fillRect(0,0,W,H);
+
+  /* Grid */
+  CTX.strokeStyle = 'rgba(45,58,82,0.5)'; CTX.lineWidth = 0.5;
+  for (let x=0;x<W;x+=40){ CTX.beginPath();CTX.moveTo(x,0);CTX.lineTo(x,H);CTX.stroke(); }
+  for (let y=0;y<H;y+=40){ CTX.beginPath();CTX.moveTo(0,y);CTX.lineTo(W,y);CTX.stroke(); }
+
+  /* Scale */
+  const heads = [d.H1, d.H2, d.z1, d.z2, d.z1+d.ph1, d.z2+Math.max(d.ph2,0), 0];
+  let hMin = Math.min(...heads) - 1.5;
+  let hMax = Math.max(...heads) + 2.5;
+
+  const pL=72, pR=85, pT=30, pB=52;
+  const dW=W-pL-pR, dH=H-pT-pB;
+  const toX = t  => pL + t*dW;
+  const toY = hd => pT + dH*(1-(hd-hMin)/(hMax-hMin));
+  const m2px = dH/(hMax-hMin);
+
+  /* Y-axis */
+  const nT=8;
+  for(let i=0;i<=nT;i++){
+    const hv = hMin+(hMax-hMin)*i/nT;
+    const y  = toY(hv);
+    CTX.fillStyle='rgba(100,116,139,0.7)';
+    CTX.font='10px "JetBrains Mono",monospace';
+    CTX.textAlign='right';
+    CTX.fillText(hv.toFixed(1)+' m', pL-6, y+3);
+    CTX.strokeStyle='rgba(45,58,82,0.35)'; CTX.lineWidth=0.5;
+    CTX.beginPath();CTX.moveTo(pL,y);CTX.lineTo(W-pR,y);CTX.stroke();
+  }
+
+  /* Datum */
+  const yD = toY(0);
+  if(yD>pT && yD<H-pB){
+    CTX.setLineDash([5,4]);
+    CTX.strokeStyle='rgba(100,116,139,0.3)'; CTX.lineWidth=1;
+    CTX.beginPath();CTX.moveTo(pL,yD);CTX.lineTo(W-pR,yD);CTX.stroke();
+    CTX.setLineDash([]);
+    CTX.fillStyle='rgba(100,116,139,0.5)';
+    CTX.font='9px Inter,sans-serif'; CTX.textAlign='left';
+    CTX.fillText('z=0 (Mat chuan/Datum)', pL+4, yD-3);
+  }
+
+  /* Pipe positions */
+  const x1=toX(0.05), x2=toX(0.95);
+  const xb1=toX(0.38), xb2=toX(0.62);
+  const c1Y=toY(d.z1), c2Y=toY(d.z2);
+  const cb1Y=toY(d.z1+(d.z2-d.z1)*0.4);
+  const cb2Y=toY(d.z1+(d.z2-d.z1)*0.6);
+  const r1=d.D1/2*m2px, r2=d.D2/2*m2px;
+  const rb1=(d.D1/2+(d.D2-d.D1)/2*0.4)*m2px;
+  const rb2=(d.D1/2+(d.D2-d.D1)/2*0.6)*m2px;
+
+  /* Water fill */
+  const wg=CTX.createLinearGradient(x1,0,x2,0);
+  wg.addColorStop(0,'rgba(59,130,246,0.25)');
+  wg.addColorStop(0.5,'rgba(6,182,212,0.2)');
+  wg.addColorStop(1,'rgba(139,92,246,0.25)');
+  CTX.beginPath();
+  CTX.moveTo(x1,c1Y-r1);
+  CTX.bezierCurveTo(xb1,cb1Y-rb1,xb2,cb2Y-rb2,x2,c2Y-r2);
+  CTX.lineTo(x2,c2Y+r2);
+  CTX.bezierCurveTo(xb2,cb2Y+rb2,xb1,cb1Y+rb1,x1,c1Y+r1);
+  CTX.closePath();
+  CTX.fillStyle=wg; CTX.fill();
+
+  /* Flow arrows (animated) */
+  const nArr=5;
+  const t0=(ts/900)%1;
+  for(let i=0;i<nArr;i++){
+    const t=((i/nArr)+t0)%1;
+    const ax=x1+(x2-x1)*t;
+    const ay=c1Y+(c2Y-c1Y)*t;
+    const spd=d.v1+(d.v2-d.v1)*t;
+    const sz=Math.min(12,3+spd*0.6);
+    const ang=Math.atan2(c2Y-c1Y, x2-x1);
+    CTX.save();
+    CTX.translate(ax,ay); CTX.rotate(ang);
+    CTX.fillStyle='rgba(6,182,212,0.55)';
+    CTX.strokeStyle='rgba(6,182,212,0.75)'; CTX.lineWidth=1;
+    CTX.beginPath();
+    CTX.moveTo(sz,0); CTX.lineTo(-sz*.5,sz*.45); CTX.lineTo(-sz*.5,-sz*.45);
+    CTX.closePath(); CTX.fill(); CTX.stroke();
+    CTX.restore();
+  }
+
+  /* Pipe walls */
+  const wwall=CTX.createLinearGradient(x1,0,x2,0);
+  wwall.addColorStop(0,'#4a90d9'); wwall.addColorStop(0.5,'#22d3ee'); wwall.addColorStop(1,'#8b5cf6');
+  CTX.save();
+  CTX.shadowColor='rgba(34,211,238,0.35)'; CTX.shadowBlur=7;
+  CTX.strokeStyle=wwall; CTX.lineWidth=2.5; CTX.setLineDash([]);
+  CTX.beginPath(); CTX.moveTo(x1,c1Y-r1);
+  CTX.bezierCurveTo(xb1,cb1Y-rb1,xb2,cb2Y-rb2,x2,c2Y-r2); CTX.stroke();
+  CTX.beginPath(); CTX.moveTo(x1,c1Y+r1);
+  CTX.bezierCurveTo(xb1,cb1Y+rb1,xb2,cb2Y+rb2,x2,c2Y+r2); CTX.stroke();
+  CTX.restore();
+  CTX.lineWidth=2; CTX.strokeStyle='#4a90d9';
+  CTX.beginPath();CTX.moveTo(x1,c1Y-r1);CTX.lineTo(x1,c1Y+r1);CTX.stroke();
+  CTX.strokeStyle='#8b5cf6';
+  CTX.beginPath();CTX.moveTo(x2,c2Y-r2);CTX.lineTo(x2,c2Y+r2);CTX.stroke();
+
+  /* Elevation dashes */
+  function elevLine(xp,z,col){
+    const y0=toY(0),yz=toY(z);
+    if(Math.abs(y0-yz)<2) return;
+    CTX.strokeStyle=col; CTX.lineWidth=1; CTX.setLineDash([4,3]);
+    CTX.beginPath();CTX.moveTo(xp,Math.min(y0,yz));CTX.lineTo(xp,Math.max(y0,yz));CTX.stroke();
+    CTX.setLineDash([]);
+  }
+  elevLine(x1,d.z1,'rgba(59,130,246,0.4)');
+  elevLine(x2,d.z2,'rgba(139,92,246,0.4)');
+
+  /* Piezometers */
+  function piezo(xp,z,ph,col){
+    if(ph<0.05) return;
+    const yb=toY(z), yt=toY(z+ph);
+    CTX.strokeStyle=col; CTX.fillStyle=col; CTX.lineWidth=2; CTX.setLineDash([]);
+    CTX.beginPath();CTX.moveTo(xp,yb);CTX.lineTo(xp,yt);CTX.stroke();
+    CTX.beginPath();CTX.moveTo(xp-5,yt);CTX.lineTo(xp+5,yt);CTX.stroke();
+    CTX.font='9px "JetBrains Mono",monospace'; CTX.textAlign='center';
+    CTX.fillText('P/rg='+ph.toFixed(2)+'m', xp, yt-6);
+  }
+  piezo(x1-11,d.z1,d.ph1,'rgba(59,130,246,0.85)');
+  piezo(x2+11,d.z2,Math.max(0,d.ph2),'rgba(139,92,246,0.85)');
+
+  /* TEL */
+  const yT1=toY(d.H1), yT2=toY(d.H2);
+  CTX.save();
+  CTX.shadowColor='#f59e0b'; CTX.shadowBlur=14;
+  CTX.strokeStyle='#f59e0b'; CTX.lineWidth=3.5; CTX.setLineDash([]);
+  CTX.beginPath();CTX.moveTo(x1,yT1);CTX.lineTo(x2,yT2);CTX.stroke();
+  CTX.restore();
+  [[x1,yT1],[x2,yT2]].forEach(([px,py])=>{
+    CTX.beginPath();CTX.arc(px,py,5.5,0,Math.PI*2);
+    CTX.fillStyle='#f59e0b';CTX.fill();
+    CTX.strokeStyle='#0a0e1a';CTX.lineWidth=1.5;CTX.stroke();
+  });
+  CTX.fillStyle='#f59e0b'; CTX.font='bold 11px Inter,sans-serif';
+  CTX.textAlign='left'; CTX.fillText('TEL - Duong Nang (Col Ap Tong)', x1+8, yT1-9);
+  CTX.font='10px "JetBrains Mono",monospace';
+  CTX.textAlign='right'; CTX.fillText('H1='+d.H1.toFixed(2)+'m', x1-2, yT1-6);
+  CTX.textAlign='left';  CTX.fillText('H2='+d.H2.toFixed(2)+'m', x2+2, yT2-6);
+
+  /* HGL */
+  const yG1=toY(d.ph1+d.z1), yG2=toY(d.ph2+d.z2);
+  CTX.save();
+  CTX.shadowColor='#22d3ee'; CTX.shadowBlur=10;
+  CTX.strokeStyle='#22d3ee'; CTX.lineWidth=2.5; CTX.setLineDash([9,5]);
+  CTX.beginPath();CTX.moveTo(x1,yG1);CTX.lineTo(x2,yG2);CTX.stroke();
+  CTX.restore(); CTX.setLineDash([]);
+  [[x1,yG1],[x2,yG2]].forEach(([px,py])=>{
+    CTX.beginPath();CTX.arc(px,py,4.5,0,Math.PI*2);
+    CTX.fillStyle='#22d3ee';CTX.fill();
+    CTX.strokeStyle='#0a0e1a';CTX.lineWidth=1.5;CTX.stroke();
+  });
+  CTX.fillStyle='#22d3ee'; CTX.font='10px Inter,sans-serif';
+  CTX.textAlign='left'; CTX.fillText('HGL - Duong Do Ap (Col Ap Tinh+Vi Nang)', x1+8, yG1+16);
+
+  /* Velocity head boxes */
+  function velGap(xp,yT,yG){
+    const yto=Math.min(yT,yG), ybo=Math.max(yT,yG);
+    if(ybo-yto<2) return;
+    const gw=34;
+    CTX.fillStyle='rgba(249,115,22,0.15)';
+    CTX.strokeStyle='rgba(249,115,22,0.45)'; CTX.lineWidth=1; CTX.setLineDash([]);
+    CTX.strokeRect(xp-gw/2,yto,gw,ybo-yto);
+    CTX.fillRect(xp-gw/2,yto,gw,ybo-yto);
+    CTX.fillStyle='#f97316';
+    CTX.font='8px "JetBrains Mono",monospace';
+    CTX.textAlign='center';
+    CTX.fillText('v2/2g'+(xp===x1?'1':'2'), xp, (yto+ybo)/2+3);
+  }
+  velGap(x1,yT1,yG1); velGap(x2,yT2,yG2);
+
+  /* hL arrow */
+  const arX=x2+34;
+  if(Math.abs(yT1-yT2)>4){
+    CTX.strokeStyle='rgba(239,68,68,0.8)'; CTX.fillStyle='rgba(239,68,68,0.8)';
+    CTX.lineWidth=1.5; CTX.setLineDash([3,3]);
+    CTX.beginPath();CTX.moveTo(arX,yT1);CTX.lineTo(arX,yT2);CTX.stroke();
+    CTX.setLineDash([]);
+    CTX.beginPath();CTX.moveTo(arX,yT2);CTX.lineTo(arX-4,yT2-9);CTX.lineTo(arX+4,yT2-9);CTX.closePath();CTX.fill();
+    CTX.beginPath();CTX.moveTo(arX-5,yT1);CTX.lineTo(arX+5,yT1);CTX.stroke();
+    CTX.fillStyle='#ef4444'; CTX.font='bold 10px Inter,sans-serif'; CTX.textAlign='left';
+    CTX.fillText('hL='+d.hL.toFixed(2)+'m', arX+6, (yT1+yT2)/2+4);
+  }
+
+  /* z dimension lines */
+  function zdim(xp,z,lbl,col){
+    if(z<0.1) return;
+    const y0=toY(0), yz=toY(z), xd=xp-26;
+    CTX.strokeStyle=col; CTX.lineWidth=1; CTX.setLineDash([2,2]);
+    CTX.beginPath();CTX.moveTo(xd,y0);CTX.lineTo(xd,yz);CTX.stroke();
+    CTX.setLineDash([]);
+    CTX.beginPath();CTX.moveTo(xd-4,y0);CTX.lineTo(xd+4,y0);CTX.stroke();
+    CTX.beginPath();CTX.moveTo(xd-4,yz);CTX.lineTo(xd+4,yz);CTX.stroke();
+    CTX.save();
+    CTX.translate(xd-10,(y0+yz)/2);CTX.rotate(-Math.PI/2);
+    CTX.fillStyle=col; CTX.font='8px "JetBrains Mono",monospace'; CTX.textAlign='center';
+    CTX.fillText(lbl,0,0); CTX.restore();
+  }
+  zdim(x1,d.z1,'z1='+d.z1.toFixed(1)+'m','rgba(59,130,246,0.7)');
+  zdim(x2,d.z2,'z2='+d.z2.toFixed(1)+'m','rgba(139,92,246,0.7)');
+
+  /* Section labels */
+  function secLbl(xp,cy,rr,idx,col){
+    const yl=cy+rr+20;
+    CTX.fillStyle=col; CTX.font='bold 12px Inter,sans-serif'; CTX.textAlign='center';
+    CTX.fillText('Mat cat '+idx, xp, yl);
+    CTX.font='9px "JetBrains Mono",monospace'; CTX.fillStyle='rgba(148,163,184,0.8)';
+    CTX.fillText('D='+(idx===1?d.D1:d.D2)*1000+'mm', xp, yl+13);
+  }
+  secLbl(x1,c1Y,r1,1,'#3b82f6');
+  secLbl(x2,c2Y,r2,2,'#8b5cf6');
+
+  /* Bottom label */
+  CTX.fillStyle='rgba(100,116,139,0.55)';
+  CTX.font='10px Inter,sans-serif'; CTX.textAlign='center';
+  CTX.fillText('Huong dong chay / Flow Direction ->', W/2, H-14);
+}
+
+/* ===== Animation Loop ===== */
+let lastSlide = 0;
+function onSlider() {
+  lastSlide = performance.now();
+  uiUpdate(physics());
+}
+Object.values(SL).forEach(s => s.addEventListener('input', onSlider));
+
+window.addEventListener('resize', () => { uiUpdate(physics()); });
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const d = physics();
+  /* Re-run UI update only when slider recently changed */
+  if (ts - lastSlide < 200) uiUpdate(d);
+  draw(d, ts);
+}
+uiUpdate(physics());
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
